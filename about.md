@@ -8,6 +8,4 @@ permalink: /about/
 
 Talk is cheap. Going to get some posts up before worrying about the large white space of "about".
 
-You can find the source code for Jekyll at
-{% include icon-github.html username="not-a-patch" %} /
-[notapatch](https://github.com/notapatch/notapatch.github.io)
+You can find the source code for this site at [notapatch.github.io](https://github.com/notapatch/notapatch.github.io)
