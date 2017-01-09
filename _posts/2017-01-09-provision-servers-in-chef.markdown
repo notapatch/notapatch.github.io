@@ -5,37 +5,106 @@ date:   2017-01-09 11:11:11 +0000
 categories: devops chef
 ---
 
-### Provisioning Server
-Provisioning a server is about running actions on a machine to make it ready for operation. These actions can be any number of configuration changes and installations of software.  
-Infrastructure as code was about making these configurations a programming problem rather than a scripting job for the sysadmin. The leading solutions for infrastructure as code are [Ansible](https://www.ansible.com/) [Chef](https://www.chef.io/chef/) and [Puppet](https://puppet.com/). Any choice which groups people into camps leads to divisive exchanges of views - [feel free to follow these](https://www.google.co.uk/search?q=puppet+vs+chef+vs+ansible) - but I chose to use Chef.  
+### How to get a server into operation
+Readying a server for use is the act of provisioning it. Each server takes time to get going. We need to speed this up.
 
-Chef is normally run on a [Chef Server](https://docs.chef.io/server_components.html) but I am running the infrastructure of a small business managing only a few servers. I chose to configure everything through the Workstation tool [knife-solo](https://matschaffer.github.io/knife-solo/) - [an excellent introduction](https://jenssegers.com/55/server-provisioning-with-chef-and-knife-solo). 
+A first try at speeding up provisioning is configuring servers the same. While quick, diverse demands on the server will lead to compromise. If you can no longer compromise on shared settings, then a second try is to use configuration management tools such as [Ansible](https://www.ansible.com/) [Chef](https://www.chef.io/chef/) and [Puppet](https://puppet.com/). We will use Chef.
+
+The recommended way to run Chef is on [Chef Server](https://docs.chef.io/server_components.html) but we are maintaining a small business network. We configured servers through the Workstation tool [knife-solo](https://matschaffer.github.io/knife-solo/).
+
+#### Reference
+[Server Provisioning with Chef and Knife-Solo](https://jenssegers.com/55/server-provisioning-with-chef-and-knife-solo). 
+[Configuration management and the golden image](http://russell.ballestrini.net/configuration-management-and-the-golden-image/)
 
 ### CookBook Patterns
-DevOps is a new area of development, [first popularised in 2009](https://en.wikipedia.org/wiki/DevOps),This is also the first year that [Chef was released](https://en.wikipedia.org/wiki/Chef_(software)).We wanted to avoid a common solution of forking everything -  
-[The Environment Cookbook Pattern by Jamie Winsor - actually covers all the cookbook patterns](http://blog.vialstudios.com/the-environment-cookbook-pattern/)
-[Suggested Environment Cookbook folder Structure - ifeltsweet](https://github.com/berkshelf/berkshelf/issues/535) - the whole thread is worth reading. 
+Chef is a young framework having been [released in 2009](https://en.wikipedia.org/wiki/Chef_(software)). At the time we began developing it was a common to forking everything and build on top - we were trying to avoid that and found the following patterns interesting:
+ * [The Environment Cookbook Pattern by Jamie Winsor - covers all the cookbook patterns](http://blog.vialstudios.com/the-environment-cookbook-pattern/)
+ * [Suggested Environment Cookbook folder Structure - ifeltsweet](https://github.com/berkshelf/berkshelf/issues/535) - the whole thread is worth reading. 
 
-### Environment Base Cookbook
-Understanding cookbook patterns was helpful to get things started. However, I did not understand how they managed code reuse between Environment Cookbooks. The idea was that you had an environment cookbook for production, staging etc. So I added a ‘Base’ cookbook which all the environment cookbooks had as their ancestor.  Environment Base Cookbook.
-Environment Base Cookbook - is what I call the common code for the Environment Cookbook - So I have Production Environment Cookbook and a Staging Environment Cookbook and their common code is in Environment Base Cookbook
+### Provision Architecture
+
+
 
 ````
-  +---------------------------------------------+
-  | Book: MyWebServer                           |
-  | Type: Environment                           |
-  |                                             |
-  | /attributes/defaults                        |
-  | default['ruby']['version'] = '2.3'          |
-  |                                             |
-  | /recipies/production                        |
-  | include_recipe 'website_cookbook::default'  |
-  |                                             |
-  | /recipies/staging                           |
-  | default['ruby']['version'] = '2.1'          |
-  | include_recipe 'website_cookbook::default'  |
-  |                                             |
-  +---------------------------------------------+
+     +---------------------------------------------+     
+     | Book: Website-example                       |
+     | Type: Environment                           |
+     |                                             |
+     | /attributes/defaults                        |
+     | default['ruby']['version'] = '2.3'          |
+     |                                             |
+     | /recipies/production                        |
+     | include_recipe 'website_cookbook::default' -+------+
+     |                                             |      |
+     | /recipies/staging                           |      |
+     | default['ruby']['version'] = '2.1'          |      |
+     | include_recipe 'website_cookbook::default'  |      |
+     |                                             |      |
+     +---------------------------------------------+      |
+                                                          |
+     +---------------------------------------------+      |
+     | Book: Website-cookbook                      |      |
+     | Type: Environment Base                      |      |
+     |                                             |      |
+     | /recipies/default  -------------------------+------+
+     | ...                                         |
+     | include_recipe 'bcs_common_system::default' +------+
+     | ...                                         |      |
+     | ...                                         |      |
+     | include_recipe 'bcs_monit::default' --------+---+  |
+     |                                             |   |  |
+     +---------------------------------------------+   |  |
+                                                       |  |
+     +---------------------------------------------+   |  |
+     | Book: bcs_monit                             |   |  |
+     | Type: wrapper                               |   |  |
+     |                                             |   |  |
+     | /attributes/defaults                        |   |  |
+     | default['monit']['polling_frequency'] = 30  |   |  |
+     |                                             |   |  |
+     | /recipies/defaults  ------------------------+---+  |
+     | include_recipe 'monit::default'             |      |
+     | monit_monitrc 'load' do                     |      |
+     |   template_cookbook 'monit'                 |      |
+     | end                                         |      |
+     |                                             |      |
+     | node['monit']['probe'].each do |probe|      |      |
+     |   monit_monitrc probe do                    |      |
+     |     template_cookbook 'bcs_monit'           |      |
+     |   end                                       |      |
+     | end                                         |      |
+     |                                             |      |
+     +---------------------------------------------+      |
+                                                          |
+     +---------------------------------------------+      |
+     | Book: bcs_common_system                     |      |
+     | Type: Base                                  |      |
+     |                                             |      |
+     | /recipies/default  -------------------------+------+
+     | include_recipe 'bcs_common_system::basic'   |
+     | include_recipe 'bcs_common_system::server'  |
+     |                                             |
+     | /recipies/basic                             |
+     | include_recipe 'apt::default'               |
+     | include_recipe 'apt-repository::default'    |
+     | ...                                         |
+     | include_recipe 'bcs_git::default' ----------+---+
+     |                                             |   |
+     +---------------------------------------------+   |
+                                                       |
+     +---------------------------------------------+   |
+     | Book: bcs_git                               |   |
+     | Type: wrapper                               |   |
+     |                                             |   |
+     | /recipies/basic ----------------------------+---+
+     | include_recipe 'git::default'               |
+     |                                             |
+     | git_config 'color' do                       |
+     |   key 'color.ui'                            |
+     |   value 'auto'                              |
+     | end                                         |
+     |                                             |
+     +---------------------------------------------+
 
 ```
 
@@ -45,6 +114,7 @@ Environment Base Cookbook - is what I call the common code for the Environment C
 | ------------------------- |:---------------------------------------------------------------------------|
 | Environment               | [website-example](https://github.com/BCS-io-provision/website-example)     |
 | Environment Base          | [website-cookbook](https://github.com/BCS-io-provision/website-cookbook)   |
-| Base                      | [bcs_common_sytem](https://github.com/BCS-io-provision/bcs_common_system)  |
+| Base                      | [bcs_common_system](https://github.com/BCS-io-provision/bcs_common_system) |
 | Wrapper                   | [bcs_monit](https://github.com/BCS-io-provision/bcs_monit)                 |
+| Wrapper                   | [bcs_git](https://github.com/BCS-io-provision/bcs_git)                     |
 {:.table}
