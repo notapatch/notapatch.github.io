@@ -13,13 +13,13 @@ A first try at speeding up provisioning is configuring servers the same. While q
 The recommended way to run Chef is on [Chef Server](https://docs.chef.io/server_components.html) but we are maintaining a small business network. We configured servers through the Workstation tool [knife-solo](https://matschaffer.github.io/knife-solo/).
 
 #### Reference
-[Server Provisioning with Chef and Knife-Solo](https://jenssegers.com/55/server-provisioning-with-chef-and-knife-solo). 
-[Configuration management and the golden image](http://russell.ballestrini.net/configuration-management-and-the-golden-image/)
+* [Server Provisioning with Chef and Knife-Solo](https://jenssegers.com/55/server-provisioning-with-chef-and-knife-solo). 
+* [Configuration management and the golden image](http://russell.ballestrini.net/configuration-management-and-the-golden-image/)
 
 ### CookBook Patterns
 Chef is a young framework having been [released in 2009](https://en.wikipedia.org/wiki/Chef_(software)). At the time we began developing it was a common to forking everything and build on top - we were trying to avoid that and found the following patterns interesting:
- * [The Environment Cookbook Pattern by Jamie Winsor - covers all the cookbook patterns](http://blog.vialstudios.com/the-environment-cookbook-pattern/)
- * [Suggested Environment Cookbook folder Structure - ifeltsweet](https://github.com/berkshelf/berkshelf/issues/535) - the whole thread is worth reading. 
+* [The Environment Cookbook Pattern by Jamie Winsor - covers all the cookbook patterns](http://blog.vialstudios.com/the-environment-cookbook-pattern/)
+* [Suggested Environment Cookbook folder Structure - ifeltsweet](https://github.com/berkshelf/berkshelf/issues/535) - the whole thread is worth reading. 
 
 ### Provision Architecture
 
