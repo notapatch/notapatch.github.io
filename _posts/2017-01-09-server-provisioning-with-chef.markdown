@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Provision Servers with Chef"
+title:  "Server Provisioning with Chef"
 date:   2017-01-09 11:11:11 +0000
 categories: devops chef
 ---
