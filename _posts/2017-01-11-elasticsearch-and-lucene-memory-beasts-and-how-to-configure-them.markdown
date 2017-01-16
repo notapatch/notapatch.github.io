@@ -2,88 +2,50 @@
 layout: post
 title:  "Elasticsearch and Lucene: memory beasts & how to configure them"
 date:   2017-01-09 11:11:11 +0000
-categories: devops chef
+categories: databases elasticsearch
 ---
 
-Elasticsearch is an open source search engine built on top of [Apache Lucene](http://lucene.apache.org/core/). Together Elasticsearch and Lucene are fantastic at devouring memory and it is a very good idea to know how to control this. It is also not an obvious topic to pick up as it skirts between knowledge of the search engine and how Linux manages memory.  
+Whenever you come across a problem you ‘try a few things’ when they don’t work then you have to stop and think. One way out of a hole is explaining your problem. So, I was reading and then explaining [how Elasticsearch used memory](https://www.elastic.co/guide/en/elasticsearch/guide/2.x/heap-sizing.html) to the [metal squirrel sitting on the desk](https://en.wikipedia.org/wiki/Rubber_duck_debugging) when it occurred to me neither of us had a clue how it worked. So we will open Elasticsearch ... just a [smudge](http://www.urbandictionary.com/define.php?term=smidge).  
 
-I read the [Elasticsearch article on heap sizing](https://www.elastic.co/guide/en/elasticsearch/guide/current/heap-sizing.html) but I didn’t understand it, if you had that experience this post is for you.  
+This is an overview and will layout a framework of the memory usage. Further detail will require more study.  
 
-###  What is virtual memory?
-When a process starts it is presented with a virgin block of memory to use at it wishes. This is, of course, a lie. The operating system is juggling a number of processes at the same time and they all think that they’ve got their own virgin block. However, if they all asked for the space at once the system would go into meltdown. [This is known as an overcommitted system](https://www.etalabs.net/overcommit.html). To square the larger virtual memory to the smaller physical memory operating systems have an intermediate responsible for diverting the request to  
-Linux supports virtual memory, by mixing RAM and hard disk space it allows a larger available ‘memory’ than the machine restricted itself to RAM alone.
+## Elasticsearch and the Penguin
+Physical memory is always in short supply. The operating system gives a new application an untouched block of virgin memory but it’s a big phoney lie - this is the [virtual address space](https://msdn.microsoft.com/en-us/library/aa366912(VS.85).aspx) and the addresses you work with are virtual addresses and you leave it up to the operating system to deal with the, real, physical addresses.
 
-````
-Process 1’s               Page Table           Physical Memory
-Virtual Memory  
-+------+ ------------> +----------+                +----------+
-|  n   |               |     n    |                |    n     |
-+------+               +----------+                +----------+
-| ...  |               |   ...    |                |    2000  |
-+------+               +----------+                +----------+
-|   0  |               |   1000   |                |    1999  |
-+------+ ------------->+----------+                +----------+
-                       |   ...    |                |    1998  |
- Process 2’s           +----------+                +----------+
-Virtual Memory         |   ...    |                |    1997  |
-+------+ ------------> +----------+                +----------+
-|  n   |               |    500   |                 Hard Disk
-+------+               +----------+                +----------+
-|  ... |               |   ...    |                |  50,000  |
-+------+               +----------+                +----------+
-|   0  |               |    300   |                |   49,999  |
-+------+ ------------> +----------+                +----------+
-                       |   ...    |                |  49,998  |
-                       +----------+                +----------+
-                       |      0   |                |   ...    |
-                       +----------+                +----------+
-````
+Operating systems can take advantages of this in two ways:  
+First, by reading in files from disk we can keep them in memory if they are needed again - called memory mapped files. This we will see is important in making Elasticsearch indexes quickly searchable.  
+Second, when an operating system is running out of physical memory it can move parts of that memory that aren’t being used and saving them temporarily on disk, until we need them later - we call this [swapping memory out on Linux and paging memory on Windows](https://en.wikipedia.org/wiki/Paging) - because we, err, want to keep people on their toes.   
 
-#### Reference
-[Difference between physical/logical/virtual memory address](http://stackoverflow.com/a/15851473/1511504)  
-[Linux Memory Mangement](http://www.thegeekstuff.com/2012/02/linux-memory-management)  
-[Virtual memory - Wikipedia](https://en.wikipedia.org/wiki/Virtual_memory)  
-[What is virtual memory?](http://www.tldp.org/LDP/sag/html/vm-intro.html)  
+#### Table  comparing Memory Mapped Files and Swapping / Paging
 
-Introduction to Lucene
-Lucene is a full-text search library in Java. It creates search indexes from supplied source data; the equivalent of storing the index at the back of the book.  
-
-#### Reference
-[Lucene Tutorial basic concepts](http://www.lucenetutorial.com/basic-concepts.html)  
-
-### Swap space
-Swap space is the part of virtual memory that lives on the hard disk. Virtual memory is only an issue when you are running out of RAM space, when RAM is not an issue neither is swapping.
-#### Reference
-[SwapFaq](https://help.ubuntu.com/community/SwapFaq)  
-[Linux Swap Space](http://www.linuxjournal.com/article/10678)  
+| Operation                                                               | Physical memory use  | When is it used?               |
+|:----------------------------------------------------------------------- |:---------------------|:-------------------------------|
+| [Memory Mapped Files](https://en.wikipedia.org/wiki/Memory-mapped_file) | Increase             | Any time                       |
+| [Swapping / Paging](https://en.wikipedia.org/wiki/Paging)               | Decreases            | Running out of physical memory |
+{:.table .u-margin-bottom}
 
 
-### How much you swap depends on what you are doing.
-The size of memory you are swapping depends on how much RAM you have and what applications you are running. [Databases can be functioning normally with a RAM usage of 95%](https://blog.engineyard.com/2013/database-memory).
-http://unix.stackexchange.com/questions/88693/why-is-swappiness-set-to-60-by-default  
 
-### Elasticsearch’s Best Practice
+## Elasticsearch and the Coffee Cup
+Elasticsearch wants to go about it’s business with as little interference from the other systems on the computer. [For servers running on Java this means setting the minimum and maximum heap size the same to increase predictability of the sizing of the virtual machine.](https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/sizing.html#sthref22)   
 
-[Reading Elastic search’s best practices](https://www.elastic.co/guide/en/elasticsearch/guide/2.x/heap-sizing.html) they prefer to lock the system down and ban Linux from doing any swapping as you could be swapping a page over when a query comes in, delaying that query. Their preference is:
+Java has [managed memory](https://docs.oracle.com/cd/E13150_01/jrockit_jvm/jrockit/geninfo/diagnos/garbage_collect.html). As it is currently implemented, Java will pause frequently while the ‘garbage’ memory is being removed. Elasticsearch wants to also avoid the Garbage collector’s pauses. [When the garbage collector is running it can delay the response to a request by an order of magnitude](https://docs.oracle.com/cd/E13150_01/jrockit_jvm/jrockit/geninfo/diagnos/garbage_collect.html) and [can result in the cluster waiting for the paused server or even, in certain cases, requiring the cluster requiring a new election](https://www.elastic.co/blog/a-heap-of-trouble).   
 
-````
-| Preference | Configuration            | Description                               |
-| ---------- | ------------------------ | ----------------------------------------- |
-| 1          | sudo swap off -a         | Disable swapping on the entire system     |
-| 2          | vm.swappiness = 1        | Swap only in an emergency memory shortage |
-| 3          | bootstrap.mlockall: true | The process running    
- 
-````
+[A lot of these problems could be alleviated with a concurrent garbage collector but it is not recommended yet.](https://www.elastic.co/blog/a-heap-of-trouble)  
 
-`sudo swapoff -a`
+## Elasticsearch and Lucene
 
-If that cannot occur then the next option is
+ [Apache Lucene](http://lucene.apache.org/core/) is a Java library which Elasticsearch has wrapped.  
 
-`vm.swappiness = 1`
-* depending on versions of the kernel
+Lucene uses up heap space with field data. ??? more 
 
-This means that swapping can only occur in the worst memory constraints.
+Where Lucene can it puts search structures into files, called segments, that can be cached by the operating system and presented, as mentioned earlier, as memory mapped files. Caching is at the operating system level and outside the Java managed heap.  Elasticsearch writes out structures to files called ’Segments’  - files are [immutable](https://www.elastic.co/guide/en/elasticsearch/guide/current/making-text-searchable.html#_immutability), once they are written out they will not change again. The immutability means that operating systems can cache these files as memory mapped files so that when the next time the index is queried, there is no need to go back to the glacially slower hard drive. These structures are the Inverted Index and Doc Values.  
 
-Finally, the last approach is to lock the memory on th
+### Lucene’s Segmented Files
 
+| Segment                                                                                                         | Cached        | Mapping                | 
+| ----------------------------------------------------------------------------------------------------------------|---------------|----------------------- |
+| [Inverted Index](https://en.wikipedia.org/wiki/Inverted_index)                                                                | Memory Mapped | Words to documents     |
+| [Doc Values / uninverted index / Column- Store](https://www.elastic.co/guide/en/elasticsearch/guide/2.x/docvalues-intro.html) | Memory Mapped | Documents to values    |
+{:.table}
 
