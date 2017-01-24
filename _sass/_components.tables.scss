@@ -1,0 +1,13 @@
+//
+// table
+//  - markdown tables do not have any borders by default 
+//  - this rectifies that situation
+//
+
+.table {
+  border-collapse: collapse; }
+  .table > table,
+  .table td,
+  .table th {
+    border: 1px solid black;
+    padding: .5em; }
