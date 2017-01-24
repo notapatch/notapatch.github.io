@@ -1,3 +1,7 @@
+
+@import 'base/global';
+@import 'base/colors';
+
 /**
  * Reset some basic elements
  */
@@ -451,7 +455,9 @@ pre {
   .highlight .il {
     color: #099; }
 
-@import 'components.tables';
+
+@import 'components/figures';
+@import 'components/tables';
 
 .u-margin-bottom {
   margin-bottom: 1em; }
