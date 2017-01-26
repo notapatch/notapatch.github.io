@@ -58,13 +58,13 @@ This is the most difficult part to describe as how you configure DNS will depend
 
 #### Example Mailgun related Resource Records
 
-| Mailgun Ref     | Name          | Record Type  | Value                                    |
-|-----------------|---------------|---------------------------------------------------------|
-| SPF             | @             | TXT          | "v-=spf1 include:mailgun.org -all"       |
-| DKIM            | k1._domainkey | TXT          | "k=rsa; p=MM0DQ [lots more charactors]"  |
-| MX Records      | @             | MX           | mxa.mailgun.org.                         |
-| MX Records      | @             | MX           | mxb.mailgun.org.                         |
-| Tracking opens  | email         | CNAME        | mailgun.org.                             |
+| Mailgun Ref     | Name          | Record Type  | Value                              |
+|-----------------|---------------|---------------------------------------------------|
+| SPF             | @             | TXT          | "v-=spf1 include:mailgun.org -all" |
+| DKIM            | k1<wbr>._domainkey | TXT          | "k=rsa; p=MM0DQ..."                |
+| MX Records      | @             | MX           | mxa.mailgun.org.                   |
+| MX Records      | @             | MX           | mxb.mailgun.org.                   |
+| Tracking opens  | email         | CNAME        | mailgun.org.                       |
 {:.table .u-margin-bottom-large}
 
 After time has passed, say 20 minutes, check the Mailgun domain by clicking 'Check DNS Records Now' and 95% of the time you will see a big orange unverified message and you will have to try again. To speed up the verification process read - [Has mailgun seen the changed DNS?](#has-mailgun-seen-the-changed-dns).
@@ -125,11 +125,12 @@ With good fortune you will, eventually, see you have verified the domain with Ma
 
 With the domain validated the next step is to route domain emails to your personal email account.
 
-| Expression Type | Recipient       | Actions      | Specified Action         | Description     |
-|-----------------|-----------------|-----------------------------------------|-----------------|
-| Match Recipient | .*@notapatch.io | ✔ forward    | me@my-personal-email.com | notapatch => me |
+| Expression Type   | Match Recipient           |
+| Recipient         | .*@notapatch.io           |
+| Actions           | ✔ forward                 |
+| Specified Actions | me@my-personal-email.com  |
+| Description       | notapatch => me           |
 {:.table .u-margin-bottom-large}
-
 
 {% include helpers/image.html name="create-route.png" caption="Creating a route matching all domain emails" %}
 
