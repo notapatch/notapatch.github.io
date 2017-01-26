@@ -1,0 +1,16 @@
+//
+// lists
+//
+
+.contact-list,
+.social-media-list
+{
+  list-style: none;
+  margin-left: 0;
+}
+
+.contact-list > li,
+.social-media-list > li {
+  margin-bottom: 1em;
+}
+

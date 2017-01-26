@@ -218,10 +218,7 @@ pre {
   font-size: 18px;
   margin-bottom: 15px; }
 
-.contact-list,
-.social-media-list {
-  list-style: none;
-  margin-left: 0; }
+@import 'components/lists';
 
 .footer-col-wrapper {
   font-size: 15px;
