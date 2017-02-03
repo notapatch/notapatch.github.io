@@ -54,85 +54,85 @@ We used solo instances where the server splits the role of an application and a 
 Finally, by having a simple set up we could flatten the environments into one cookbook cutting cookbook maintenance.
 
 ````
-     +---------------------------------------------+     
-     | Book: Website-example                       |
-     | Type: Environments                          |
-     |                                             |
-     | /attributes/defaults                        |
-     | default['ruby']['version'] = '2.3'          |
-     |                                             |
-     | /recipies/production                        |
-     | include_recipe 'website_cookbook::default' -+------+
-     |                                             |      |
-     | /recipies/staging                           |      |
-     | default['ruby']['version'] = '2.1'          |      |
-     | include_recipe 'website_cookbook::default'  |      |
-     |                                             |      |
-     +---------------------------------------------+      |
-                                                          |
-     +---------------------------------------------+      |
-     | Book: Website-cookbook                      |      |
-     | Type: Environment Base                      |      |
-     |                                             |      |
-     | /recipies/default  -------------------------+------+
-     | ...                                         |
-     | include_recipe 'bcs_common_system::default' +------+
-     | ...                                         |      |
-     | ...                                         |      |
-     | include_recipe 'bcs_monit::default' --------+---+  |
-     |                                             |   |  |
-     +---------------------------------------------+   |  |
-                                                       |  |
-     +---------------------------------------------+   |  |
-     | Book: bcs_monit                             |   |  |
-     | Type: wrapper                               |   |  |
-     |                                             |   |  |
-     | /attributes/defaults                        |   |  |
-     | default['monit']['polling_frequency'] = 30  |   |  |
-     |                                             |   |  |
-     | /recipies/defaults  ------------------------+---+  |
-     | include_recipe 'monit::default'             |      |
-     | monit_monitrc 'load' do                     |      |
-     |   template_cookbook 'monit'                 |      |
-     | end                                         |      |
-     |                                             |      |
-     | node['monit']['probe'].each do |probe|      |      |
-     |   monit_monitrc probe do                    |      |
-     |     template_cookbook 'bcs_monit'           |      |
-     |   end                                       |      |
-     | end                                         |      |
-     |                                             |      |
-     +---------------------------------------------+      |
-                                                          |
-     +---------------------------------------------+      |
-     | Book: bcs_common_system                     |      |
-     | Type: Base                                  |      |
-     |                                             |      |
-     | /recipies/default  -------------------------+------+
-     | include_recipe 'bcs_common_system::basic'   |
-     | include_recipe 'bcs_common_system::server'  |
-     |                                             |
-     | /recipies/basic                             |
-     | include_recipe 'apt::default'               |
-     | include_recipe 'apt-repository::default'    |
-     | ...                                         |
-     | include_recipe 'bcs_git::default' ----------+---+
-     |                                             |   |
-     +---------------------------------------------+   |
-                                                       |
-     +---------------------------------------------+   |
-     | Book: bcs_git                               |   |
-     | Type: wrapper                               |   |
-     |                                             |   |
-     | /recipies/basic ----------------------------+---+
-     | include_recipe 'git::default'               |
-     |                                             |
-     | git_config 'color' do                       |
-     |   key 'color.ui'                            |
-     |   value 'auto'                              |
-     | end                                         |
-     |                                             |
-     +---------------------------------------------+
++---------------------------------------------+
+| Book: Website-example                       |
+| Type: Environments                          |
+|                                             |
+| /attributes/defaults                        |
+| default['ruby']['version'] = '2.3'          |
+|                                             |
+| /recipies/production                        |
+| include_recipe 'website_cookbook::default' -+------+
+|                                             |      |
+| /recipies/staging                           |      |
+| default['ruby']['version'] = '2.1'          |      |
+| include_recipe 'website_cookbook::default'  |      |
+|                                             |      |
++---------------------------------------------+      |
+                                                     |
++---------------------------------------------+      |
+| Book: Website-cookbook                      |      |
+| Type: Environment Base                      |      |
+|                                             |      |
+| /recipies/default  -------------------------+------+
+| ...                                         |
+| include_recipe 'bcs_common_system::default' +------+
+| ...                                         |      |
+| ...                                         |      |
+| include_recipe 'bcs_monit::default' --------+---+  |
+|                                             |   |  |
++---------------------------------------------+   |  |
+                                                  |  |
++---------------------------------------------+   |  |
+| Book: bcs_monit                             |   |  |
+| Type: wrapper                               |   |  |
+|                                             |   |  |
+| /attributes/defaults                        |   |  |
+| default['monit']['polling_frequency'] = 30  |   |  |
+|                                             |   |  |
+| /recipies/defaults  ------------------------+---+  |
+| include_recipe 'monit::default'             |      |
+| monit_monitrc 'load' do                     |      |
+|   template_cookbook 'monit'                 |      |
+| end                                         |      |
+|                                             |      |
+| node['monit']['probe'].each do |probe|      |      |
+|   monit_monitrc probe do                    |      |
+|     template_cookbook 'bcs_monit'           |      |
+|   end                                       |      |
+| end                                         |      |
+|                                             |      |
++---------------------------------------------+      |
+                                                     |
++---------------------------------------------+      |
+| Book: bcs_common_system                     |      |
+| Type: Base                                  |      |
+|                                             |      |
+| /recipies/default  -------------------------+------+
+| include_recipe 'bcs_common_system::basic'   |
+| include_recipe 'bcs_common_system::server'  |
+|                                             |
+| /recipies/basic                             |
+| include_recipe 'apt::default'               |
+| include_recipe 'apt-repository::default'    |
+| ...                                         |
+| include_recipe 'bcs_git::default' ----------+---+
+|                                             |   |
++---------------------------------------------+   |
+                                                  |
++---------------------------------------------+   |
+| Book: bcs_git                               |   |
+| Type: wrapper                               |   |
+|                                             |   |
+| /recipies/basic ----------------------------+---+
+| include_recipe 'git::default'               |
+|                                             |
+| git_config 'color' do                       |
+|   key 'color.ui'                            |
+|   value 'auto'                              |
+| end                                         |
+|                                             |
++---------------------------------------------+
 
 ```
 
