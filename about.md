@@ -4,7 +4,7 @@ title: About
 permalink: /about/
 ---
 
-![This is not a pipe](/images/not-a-pipe.png){:class="img-responsive"}
+![This is not a pipe](/assets/images/not-a-pipe.png){:class="img-responsive"}
 
 Talk is cheap. Going to get some posts up before worrying about the large white space of "about".
 
