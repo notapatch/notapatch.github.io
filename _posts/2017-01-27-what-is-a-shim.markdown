@@ -4,7 +4,6 @@ title: 'What is a shim?'
 date:   2017-01-27 11:11:11 +0000
 draft: false
 ---
-((((  Rich this is question - how did you learn how to use a shim?)))
 
 You're stuck. 
 
