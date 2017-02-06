@@ -4,9 +4,21 @@ title: 'What is a shim?'
 date:   2017-01-27 11:11:11 +0000
 draft: false
 ---
+((((  Rich this is question - how did you learn how to use a shim?)))
 
+You're stuck. 
 
-When you want a quick fix to a computing question you visit Stackoverflow and, if you're feeling diligent, Wikipedia and nine out of 10 times you're done. This was the 10th time. I had a dictionary answer to "What is a shim?" but no idea how to use it. 
+You visit Stackoverflow.  
+
+You double check Wikipedia.  
+
+Nine times out of ten, that's you sorted.
+
+However, this was that tenth time.
+
+"What is a shim?" - I could now write my own wiki entry, but remained clueless as to how to apply my new-found knowledge.
+
+ So, here goes - go eleven - the blog post.  
 
 
 ### What is a shim?
