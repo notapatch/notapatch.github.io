@@ -19,6 +19,9 @@ However, this was that tenth time.
 
  So, here goes - go eleven - the blog post.  
 
+![Get Shimmying](http://i.imgur.com/IwdBJKD.gif)
+{% include helpers/image.html name="catshim.gif" caption="Get shimmying" %}
+
 
 ### What is a shim?
 
