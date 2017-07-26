@@ -19,7 +19,7 @@ email: patch@notapatch.io
 description: >
   Tech-tastic blog about what I'm working on. 
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
+url: "https://www.notapatch.io"
 twitter_username: notapatch
 github_username:  notapatch
 
